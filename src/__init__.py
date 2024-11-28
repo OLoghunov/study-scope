@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.books.routes import booksRouter
+from src.books.routers import booksRouter
 from contextlib import asynccontextmanager
 from src.db.main import initDb
 
