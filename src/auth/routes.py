@@ -3,11 +3,12 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import getSession
-from datetime import timedelta
+from datetime import timedelta, datetime
 from .models import User
 from .schemas import UserCreateModel, UserModel, UserLoginModel
 from .service import UserService
 from .utils import createAccessToken, decodeToken, verifyPassword
+from .dependencies import RefreshTokenBearer
 
 authRouter = APIRouter()
 service = UserService()
@@ -68,4 +69,18 @@ async def loginUsers(
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, detail="Invalid email or password"
+    )
+
+
+@authRouter.get("/refresh_token")
+async def getNewAccessToken(tokenDetails: dict = Depends(RefreshTokenBearer())):
+    expiryTimestamp = tokenDetails["exp"]
+
+    if datetime.fromtimestamp(expiryTimestamp) > datetime.now():
+        newAccessToken = createAccessToken(userData=tokenDetails["user"])
+
+        return JSONResponse(content={"access_token": newAccessToken})
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
     )
