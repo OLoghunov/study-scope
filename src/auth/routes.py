@@ -8,7 +8,8 @@ from .models import User
 from .schemas import UserCreateModel, UserModel, UserLoginModel
 from .service import UserService
 from .utils import createAccessToken, decodeToken, verifyPassword
-from .dependencies import RefreshTokenBearer
+from .dependencies import RefreshTokenBearer, AccessTokenBearer
+from src.db.redis import addJtiToBlocklist
 
 authRouter = APIRouter()
 service = UserService()
@@ -83,4 +84,18 @@ async def getNewAccessToken(tokenDetails: dict = Depends(RefreshTokenBearer())):
 
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+    )
+
+
+@authRouter.get("/logout")
+async def revokeToken(tokenDetails: dict=Depends(AccessTokenBearer())):
+    jti = tokenDetails["jti"]
+    
+    await addJtiToBlocklist(jti)
+    
+    return JSONResponse(
+        content={
+            "message":"Logged out successfully"
+        },
+        status_code=status.HTTP_200_OK
     )
