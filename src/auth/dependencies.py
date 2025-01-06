@@ -1,10 +1,15 @@
-from fastapi import Request, status
+from fastapi import Request, status, Depends
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from fastapi.exceptions import HTTPException
 from .utils import decodeToken
 from src.db.redis import tokenInBlocklist
+from src.db.main import getSession
+from sqlmodel.ext.asyncio.session import AsyncSession
+from .service import UserService
 
+
+userService = UserService()
 
 class TokenBearer(HTTPBearer):
 
@@ -20,18 +25,20 @@ class TokenBearer(HTTPBearer):
 
         if not self.tokenValid(token):
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail={
-                    "error":"This token is invalid or expired",
-                    "resolution":"Please get new token"
-                }
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "error": "This token is invalid or expired",
+                    "resolution": "Please get new token",
+                },
             )
-            
+
         if await tokenInBlocklist(tokenData["jti"]):
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail={
-                    "error":"This token is invalid or has been revoked",
-                    "resolution":"Please get new token"
-                }
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "error": "This token is invalid or has been revoked",
+                    "resolution": "Please get new token",
+                },
             )
 
         self.verifyTokenData(tokenData)
@@ -42,10 +49,9 @@ class TokenBearer(HTTPBearer):
         tokenData = decodeToken(token)
 
         return tokenData is not None
-    
+
     def verifyTokenData(self, tokenData: dict):
         raise NotImplementedError("Please Override this method in child classes")
-        
 
 
 class AccessTokenBearer(TokenBearer):
@@ -66,3 +72,14 @@ class RefreshTokenBearer(TokenBearer):
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Please provide a refresh token",
             )
+
+
+async def getCurrentUser(
+    tokenDetails: dict = Depends(AccessTokenBearer()),
+    session: AsyncSession = Depends(getSession)
+):
+    userEmail = tokenDetails["user"]["email"]
+
+    user = await userService.getUserByEmail(userEmail, session)
+    
+    return user

@@ -19,7 +19,6 @@ app = FastAPI(
     title="Library",
     description="A REST API for online library",
     version=version,
-    lifespan=lifeSpan,
 )
 
 app.include_router(booksRouter, prefix="/api/{version}/books", tags=["books"])

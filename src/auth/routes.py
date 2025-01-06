@@ -8,7 +8,7 @@ from .models import User
 from .schemas import UserCreateModel, UserModel, UserLoginModel
 from .service import UserService
 from .utils import createAccessToken, decodeToken, verifyPassword
-from .dependencies import RefreshTokenBearer, AccessTokenBearer
+from .dependencies import RefreshTokenBearer, AccessTokenBearer, getCurrentUser
 from src.db.redis import addJtiToBlocklist
 
 authRouter = APIRouter()
@@ -85,6 +85,11 @@ async def getNewAccessToken(tokenDetails: dict = Depends(RefreshTokenBearer())):
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
     )
+
+
+@authRouter.get("/me")
+async def getCurrentUser(user = Depends(getCurrentUser)):
+    return user
 
 
 @authRouter.get("/logout")
