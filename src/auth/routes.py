@@ -8,11 +8,12 @@ from .models import User
 from .schemas import UserCreateModel, UserModel, UserLoginModel
 from .service import UserService
 from .utils import createAccessToken, decodeToken, verifyPassword
-from .dependencies import RefreshTokenBearer, AccessTokenBearer, getCurrentUser
+from .dependencies import RefreshTokenBearer, AccessTokenBearer, getCurrentUser, RoleChecker
 from src.db.redis import addJtiToBlocklist
 
 authRouter = APIRouter()
 service = UserService()
+roleChecker = RoleChecker(["admin", "user"])
 
 REFRESH_TOKEN_EXPIRY = 2
 
@@ -50,7 +51,7 @@ async def loginUsers(
 
         if passwordValid:
             accessToken = createAccessToken(
-                userData={"email": email, "userUid": str(user.uid)}
+                userData={"email": email, "userUid": str(user.uid), "role": user.role}
             )
 
             refreshToken = createAccessToken(
@@ -88,19 +89,18 @@ async def getNewAccessToken(tokenDetails: dict = Depends(RefreshTokenBearer())):
 
 
 @authRouter.get("/me")
-async def getCurrentUser(user = Depends(getCurrentUser)):
+async def getCurrentUser(user=Depends(getCurrentUser), _: bool = Depends(roleChecker)):
     return user
 
 
 @authRouter.get("/logout")
-async def revokeToken(tokenDetails: dict=Depends(AccessTokenBearer())):
+async def revokeToken(tokenDetails: dict = Depends(AccessTokenBearer())):
     jti = tokenDetails["jti"]
-    
+
     await addJtiToBlocklist(jti)
-    
+
     return JSONResponse(
-        content={
-            "message":"Logged out successfully"
-        },
-        status_code=status.HTTP_200_OK
+        content={"message": "Logged out successfully"}, status_code=status.HTTP_200_OK
     )
+
+

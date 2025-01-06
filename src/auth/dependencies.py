@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import Request, status, Depends
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
@@ -7,9 +9,11 @@ from src.db.redis import tokenInBlocklist
 from src.db.main import getSession
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .service import UserService
+from .models import User
 
 
 userService = UserService()
+
 
 class TokenBearer(HTTPBearer):
 
@@ -76,10 +80,22 @@ class RefreshTokenBearer(TokenBearer):
 
 async def getCurrentUser(
     tokenDetails: dict = Depends(AccessTokenBearer()),
-    session: AsyncSession = Depends(getSession)
+    session: AsyncSession = Depends(getSession),
 ):
     userEmail = tokenDetails["user"]["email"]
 
     user = await userService.getUserByEmail(userEmail, session)
-    
+
     return user
+
+
+class RoleChecker:
+    def __init__(self, allowedRoles: List[str]) -> None:
+        self.allowedRoles = allowedRoles
+
+    def __call__(self, currentUser: User = Depends(getCurrentUser)):
+        if currentUser.role in self.allowedRoles:
+            return True
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Operation not permitted"
+        )

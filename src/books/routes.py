@@ -4,7 +4,7 @@ from fastapi.exceptions import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.books.service import BookService
 from src.books.schemas import BookModel, BookUpdateModel, BookCreateModel
-from src.auth.dependencies import AccessTokenBearer
+from src.auth.dependencies import AccessTokenBearer, RoleChecker
 
 from src.db.main import getSession
 
@@ -12,18 +12,25 @@ from src.db.main import getSession
 booksRouter = APIRouter()
 BookService = BookService()
 accessTokenBearer = AccessTokenBearer()
+roleChecker = Depends(RoleChecker(["admin", "user"]))
 
 
-@booksRouter.get("/", response_model=List[BookModel])
+@booksRouter.get("/", response_model=List[BookModel], dependencies=[roleChecker])
 async def getAllBooks(
-    session: AsyncSession = Depends(getSession), userDetails=Depends(accessTokenBearer)
+    session: AsyncSession = Depends(getSession),
+    userDetails=Depends(accessTokenBearer),
 ):
     print(userDetails)
     books = await BookService.getAllBooks(session)
     return books
 
 
-@booksRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=BookModel)
+@booksRouter.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=BookModel,
+    dependencies=[roleChecker],
+)
 async def createBook(
     bookData: BookCreateModel,
     session: AsyncSession = Depends(getSession),
@@ -33,7 +40,7 @@ async def createBook(
     return newBook
 
 
-@booksRouter.get("/{book_uid}", response_model=BookModel)
+@booksRouter.get("/{book_uid}", response_model=BookModel, dependencies=[roleChecker])
 async def getBookById(
     book_uid: str,
     session: AsyncSession = Depends(getSession),
@@ -48,7 +55,7 @@ async def getBookById(
         )
 
 
-@booksRouter.patch("/{book_uid}", response_model=BookModel)
+@booksRouter.patch("/{book_uid}", response_model=BookModel, dependencies=[roleChecker])
 async def updateBookById(
     book_uid: str,
     update_data: BookUpdateModel,
@@ -64,7 +71,9 @@ async def updateBookById(
         )
 
 
-@booksRouter.delete("/{book_uid}", status_code=status.HTTP_204_NO_CONTENT)
+@booksRouter.delete(
+    "/{book_uid}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[roleChecker]
+)
 async def deleteBookById(
     book_uid: str,
     session: AsyncSession = Depends(getSession),
