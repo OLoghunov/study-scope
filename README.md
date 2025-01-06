@@ -36,16 +36,15 @@ Follow these steps to set up and run the project locally:
    ```
 
 6. **Run the application**:
-   Navigate to the `src` directory and execute the main module. For example:
    ```bash
-   cd src
-   python main.py
+   fastapi dev src
    ```
 
 ## Additional Notes
 
 - The project uses Alembic for database migrations. Ensure you have the correct database connection string configured in `alembic.ini`.
 - Refer to the `requirements.txt` file for the list of dependencies and their versions.
+- Make sure that your Redis server is working correctly.
 
 ## Contributing
 
