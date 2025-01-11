@@ -20,7 +20,6 @@ async def getAllBooks(
     session: AsyncSession = Depends(getSession),
     userDetails=Depends(accessTokenBearer),
 ):
-    print(userDetails)
     books = await BookService.getAllBooks(session)
     return books
 
