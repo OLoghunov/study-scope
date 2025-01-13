@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import getSession
 from datetime import timedelta, datetime
-from .models import User
+from src.db.models import User
 from .schemas import UserCreateModel, UserModel, UserLoginModel, UserBooksModel
 from .service import UserService
 from .utils import createAccessToken, decodeToken, verifyPassword

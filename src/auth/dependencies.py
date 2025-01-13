@@ -9,7 +9,7 @@ from src.db.redis import tokenInBlocklist
 from src.db.main import getSession
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .service import UserService
-from .models import User
+from src.db.models import User
 
 
 userService = UserService()
