@@ -1,8 +1,10 @@
+from datetime import datetime
+import logging
+
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .schemas import BookCreateModel, BookUpdateModel
 from sqlmodel import select, desc
 from src.db.models import Book
-from datetime import datetime
 
 
 class BookService:
@@ -21,8 +23,12 @@ class BookService:
         return result.all()
 
     async def getBook(self, bookUid: str, session: AsyncSession):
-        statement = select(Book).where(Book.uid == bookUid)
-        result = await session.exec(statement)
+        try:
+            statement = select(Book).where(Book.uid == bookUid)
+            result = await session.exec(statement)
+        except Exception as e:
+            logging.exception(e)
+            return None
 
         return result.first()
 
