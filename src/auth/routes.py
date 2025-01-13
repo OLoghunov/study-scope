@@ -5,10 +5,15 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import getSession
 from datetime import timedelta, datetime
 from .models import User
-from .schemas import UserCreateModel, UserModel, UserLoginModel
+from .schemas import UserCreateModel, UserModel, UserLoginModel, UserBooksModel
 from .service import UserService
 from .utils import createAccessToken, decodeToken, verifyPassword
-from .dependencies import RefreshTokenBearer, AccessTokenBearer, getCurrentUser, RoleChecker
+from .dependencies import (
+    RefreshTokenBearer,
+    AccessTokenBearer,
+    getCurrentUser,
+    RoleChecker,
+)
 from src.db.redis import addJtiToBlocklist
 
 authRouter = APIRouter()
@@ -88,7 +93,7 @@ async def getNewAccessToken(tokenDetails: dict = Depends(RefreshTokenBearer())):
     )
 
 
-@authRouter.get("/me")
+@authRouter.get("/me", response_model=UserBooksModel)
 async def getCurrentUser(user=Depends(getCurrentUser), _: bool = Depends(roleChecker)):
     return user
 
@@ -102,5 +107,3 @@ async def revokeToken(tokenDetails: dict = Depends(AccessTokenBearer())):
     return JSONResponse(
         content={"message": "Logged out successfully"}, status_code=status.HTTP_200_OK
     )
-
-
