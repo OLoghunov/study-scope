@@ -24,6 +24,16 @@ async def getAllBooks(
     return books
 
 
+@booksRouter.get("/user/{userUid}", response_model=List[BookModel], dependencies=[roleChecker])
+async def getUserBooksSubmissions(
+    userUid: str,
+    session: AsyncSession = Depends(getSession),
+    tokenDetails: dict = Depends(accessTokenBearer),
+):
+    books = await BookService.getUserBooks(userUid, session)
+    return books
+
+
 @booksRouter.post(
     "/",
     status_code=status.HTTP_201_CREATED,
