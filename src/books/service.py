@@ -18,10 +18,11 @@ class BookService:
         
         return result.first()
 
-    async def createBook(self, bookData: BookCreateModel, session: AsyncSession):
+    async def createBook(self, bookData: BookCreateModel, userUid: str, session: AsyncSession):
         bookDataDict = bookData.model_dump()
         newBook = Book(**bookDataDict)
         newBook.published_date = datetime.strptime(bookDataDict["published_date"], "%Y-%m-%d")
+        newBook.userUid = userUid
         session.add(newBook)
         await session.commit()
 

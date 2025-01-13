@@ -18,7 +18,7 @@ roleChecker = Depends(RoleChecker(["admin", "user"]))
 @booksRouter.get("/", response_model=List[BookModel], dependencies=[roleChecker])
 async def getAllBooks(
     session: AsyncSession = Depends(getSession),
-    userDetails=Depends(accessTokenBearer),
+    tokenDetails: dict = Depends(accessTokenBearer),
 ):
     books = await BookService.getAllBooks(session)
     return books
@@ -33,9 +33,10 @@ async def getAllBooks(
 async def createBook(
     bookData: BookCreateModel,
     session: AsyncSession = Depends(getSession),
-    userDetails=Depends(accessTokenBearer),
+    tokenDetails: dict = Depends(accessTokenBearer),
 ):
-    newBook = await BookService.createBook(bookData, session)
+    userId = tokenDetails["user"]["userUid"]
+    newBook = await BookService.createBook(bookData, userId, session)
     return newBook
 
 
@@ -43,7 +44,7 @@ async def createBook(
 async def getBookById(
     book_uid: str,
     session: AsyncSession = Depends(getSession),
-    userDetails=Depends(accessTokenBearer),
+    tokenDetails: dict = Depends(accessTokenBearer),
 ):
     book = await BookService.getBook(book_uid, session)
     if book:
@@ -59,7 +60,7 @@ async def updateBookById(
     book_uid: str,
     update_data: BookUpdateModel,
     session: AsyncSession = Depends(getSession),
-    userDetails=Depends(accessTokenBearer),
+    tokenDetails: dict = Depends(accessTokenBearer),
 ):
     updatedBook = await BookService.updateBook(book_uid, update_data, session)
     if updatedBook:
@@ -76,7 +77,7 @@ async def updateBookById(
 async def deleteBookById(
     book_uid: str,
     session: AsyncSession = Depends(getSession),
-    userDetails=Depends(accessTokenBearer),
+    tokenDetails: dict = Depends(accessTokenBearer),
 ):
     deleted = await BookService.deleteBook(book_uid, session)
     if deleted is None:
