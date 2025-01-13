@@ -20,8 +20,8 @@ class BookService:
         
         return result.all()
 
-    async def getBook(self, bookUID: str, session: AsyncSession):
-        statement = select(Book).where(Book.uid == bookUID)
+    async def getBook(self, bookUid: str, session: AsyncSession):
+        statement = select(Book).where(Book.uid == bookUid)
         result = await session.exec(statement)
 
         return result.first()
