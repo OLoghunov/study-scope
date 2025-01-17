@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status
+from fastapi import FastAPI
 
 from src.books.routes import booksRouter
 from src.auth.routes import authRouter
