@@ -232,7 +232,7 @@ def registerAllErrors(app: FastAPI):
         ),
     )
 
-    @app.exceptionHandler(500)
+    @app.exception_handler(500)
     async def internal_server_error(request, exc):
 
         return JSONResponse(
@@ -243,7 +243,7 @@ def registerAllErrors(app: FastAPI):
             statusCode=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    @app.exceptionHandler(SQLAlchemyError)
+    @app.exception_handler(SQLAlchemyError)
     async def database_error(request, exc):
         print(str(exc))
         return JSONResponse(
