@@ -1,19 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status
+
 from src.books.routes import booksRouter
 from src.auth.routes import authRouter
 from src.reviews.routes import reviewRouter
 from src.tags.routes import tagsRouter
-from contextlib import asynccontextmanager
-from src.db.main import initDb
-
-
-@asynccontextmanager
-async def lifeSpan(app: FastAPI):
-    print("Server is starting...")
-    await initDb()
-    yield
-    print("Server has been stopped")
-
+from .errors import registerAllErrors
 
 version = "0.1"
 
@@ -22,6 +13,8 @@ app = FastAPI(
     description="A REST API for online library",
     version=version,
 )
+
+registerAllErrors(app)
 
 app.include_router(booksRouter, prefix="/api/{version}/books", tags=["books"])
 app.include_router(authRouter, prefix="/api/{version}/auth", tags=["auth"])
