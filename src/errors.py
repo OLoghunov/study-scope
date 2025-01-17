@@ -4,73 +4,74 @@ from fastapi.responses import JSONResponse
 from fastapi import FastAPI, status
 from sqlalchemy.exc import SQLAlchemyError
 
-class BooklyException(Exception):
-    """This is the base class for all bookly errors"""
+
+class StudyScopeException(Exception):
+    """This is the base class for all study-scope errors"""
 
     pass
 
 
-class InvalidToken(BooklyException):
+class InvalidToken(StudyScopeException):
     """User has provided an invalid or expired token"""
 
     pass
 
 
-class RevokedToken(BooklyException):
+class RevokedToken(StudyScopeException):
     """User has provided a token that has been revoked"""
 
     pass
 
 
-class AccessTokenRequired(BooklyException):
+class AccessTokenRequired(StudyScopeException):
     """User has provided a refresh token when an access token is needed"""
 
     pass
 
 
-class RefreshTokenRequired(BooklyException):
+class RefreshTokenRequired(StudyScopeException):
     """User has provided an access token when a refresh token is needed"""
 
     pass
 
 
-class UserAlreadyExists(BooklyException):
-    """User has provided an email for a user who exists during sign up."""
+class UserAlreadyExists(StudyScopeException):
+    """User has provided an email for a user who exists during sign up"""
 
     pass
 
 
-class InvalidCredentials(BooklyException):
-    """User has provided wrong email or password during log in."""
+class InvalidCredentials(StudyScopeException):
+    """User has provided wrong email or password during log in"""
 
     pass
 
 
-class InsufficientPermission(BooklyException):
-    """User does not have the neccessary permissions to perform an action."""
+class InsufficientPermission(StudyScopeException):
+    """User does not have the neccessary permissions to perform an action"""
 
     pass
 
 
-class BookNotFound(BooklyException):
+class BookNotFound(StudyScopeException):
     """Book Not found"""
 
     pass
 
 
-class TagNotFound(BooklyException):
+class TagNotFound(StudyScopeException):
     """Tag Not found"""
 
     pass
 
 
-class TagAlreadyExists(BooklyException):
+class TagAlreadyExists(StudyScopeException):
     """Tag already exists"""
 
     pass
 
 
-class UserNotFound(BooklyException):
+class UserNotFound(StudyScopeException):
     """User Not found"""
 
     pass
@@ -78,13 +79,15 @@ class UserNotFound(BooklyException):
 
 class AccountNotVerified(Exception):
     """Account not yet verified"""
+
     pass
+
 
 def create_exception_handler(
     status_code: int, initial_detail: Any
 ) -> Callable[[Request, Exception], JSONResponse]:
 
-    async def exception_handler(request: Request, exc: BooklyException):
+    async def exception_handler(request: Request, exc: StudyScopeException):
 
         return JSONResponse(content=initial_detail, status_code=status_code)
 
@@ -224,7 +227,7 @@ def register_all_errors(app: FastAPI):
             initial_detail={
                 "message": "Account Not verified",
                 "error_code": "account_not_verified",
-                "resolution":"Please check your email for verification details"
+                "resolution": "Please check your email for verification details",
             },
         ),
     )
@@ -239,7 +242,6 @@ def register_all_errors(app: FastAPI):
             },
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
 
     @app.exception_handler(SQLAlchemyError)
     async def database__error(request, exc):

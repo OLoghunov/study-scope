@@ -12,15 +12,9 @@ from src.errors import BookNotFound, TagNotFound, TagAlreadyExists
 bookService = BookService()
 
 
-serverError = HTTPException(
-    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something went wrong"
-)
-
-
 class TagService:
 
     async def getTags(self, session: AsyncSession):
-
         statement = select(Tag).order_by(desc(Tag.created_at))
 
         result = await session.exec(statement)
@@ -30,7 +24,6 @@ class TagService:
     async def addTagsToBook(
         self, bookUid: str, tagData: TagAddModel, session: AsyncSession
     ):
-
         book = await bookService.getBook(bookUid=bookUid, session=session)
 
         if not book:
@@ -44,33 +37,29 @@ class TagService:
                 tag = Tag(name=tagItem.name)
 
             book.tags.append(tag)
+
         session.add(book)
         await session.commit()
         await session.refresh(book)
         return book
 
     async def getTagByUid(self, tagUid: str, session: AsyncSession):
-
         statement = select(Tag).where(Tag.uid == tagUid)
-
         result = await session.exec(statement)
 
         return result.first()
 
     async def addTag(self, tagData: TagCreateModel, session: AsyncSession):
-
         statement = select(Tag).where(Tag.name == tagData.name)
-
         result = await session.exec(statement)
-
         tag = result.first()
 
         if tag:
             raise TagAlreadyExists()
+
         newTag = Tag(name=tagData.name)
 
         session.add(newTag)
-
         await session.commit()
 
         return newTag
@@ -78,7 +67,6 @@ class TagService:
     async def updateTag(
         self, tagUid, tagUpdateData: TagCreateModel, session: AsyncSession
     ):
-
         tag = await self.getTagByUid(tagUid, session)
 
         if not tag:
@@ -90,19 +78,15 @@ class TagService:
             setattr(tag, k, v)
 
             await session.commit()
-
             await session.refresh(tag)
 
         return tag
 
     async def deleteTag(self, tagUid: str, session: AsyncSession):
-
-        tag = self.getTagByUid(tagUid,session)
+        tag = self.getTagByUid(tagUid, session)
 
         if not tag:
             raise TagNotFound()
 
         await session.delete(tag)
-
         await session.commit()
-    
