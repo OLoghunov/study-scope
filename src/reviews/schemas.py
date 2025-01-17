@@ -18,3 +18,11 @@ class ReviewModel(BaseModel):
 class ReviewCreateModel(BaseModel):
     rating: int = Field(lt=6)
     reviewText: str
+    
+
+class ReviewShortModel(BaseModel):
+    rating: int = Field(lt=6)
+    reviewText: str
+    bookUid: Optional[uuid.UUID]
+    created_at: datetime
+    updated_at: datetime
