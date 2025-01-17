@@ -237,7 +237,7 @@ def registerAllErrors(app: FastAPI):
 
         return JSONResponse(
             content={
-                "message": "Oops! Something went wrong",
+                "message": "Oops... Something went wrong",
                 "error_code": "server_error",
             },
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -246,9 +246,10 @@ def registerAllErrors(app: FastAPI):
     @app.exception_handler(SQLAlchemyError)
     async def database_error(request, exc):
         print(str(exc))
+        
         return JSONResponse(
             content={
-                "message": "Oops! Something went wrong",
+                "message": "Oops... Something went wrong",
                 "error_code": "server_error",
             },
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
