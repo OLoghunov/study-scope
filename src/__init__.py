@@ -5,6 +5,7 @@ from src.auth.routes import authRouter
 from src.reviews.routes import reviewRouter
 from src.tags.routes import tagsRouter
 from .errors import registerAllErrors
+from .middleware import registerMiddleware
 
 version = "0.1"
 
@@ -15,6 +16,8 @@ app = FastAPI(
 )
 
 registerAllErrors(app)
+
+registerMiddleware(app)
 
 app.include_router(booksRouter, prefix="/api/{version}/books", tags=["books"])
 app.include_router(authRouter, prefix="/api/{version}/auth", tags=["auth"])
