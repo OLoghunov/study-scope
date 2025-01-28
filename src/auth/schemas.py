@@ -40,3 +40,12 @@ class UserLoginModel(BaseModel):
 
 class EmailModel(BaseModel):
     addresses: List[str]
+    
+
+class PasswordResetRequestModel(BaseModel):
+    email: str
+    
+
+class PasswordResetConfirmModel(BaseModel):
+    newPassword: str
+    confirmNewPassword: str
