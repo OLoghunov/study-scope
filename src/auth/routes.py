@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import getSession
@@ -28,6 +28,7 @@ from .dependencies import (
     getCurrentUser,
     RoleChecker,
 )
+from src.celery_tasks import send_email
 from src.db.redis import addJtiToBlocklist
 from src.errors import UserAlreadyExists, InvalidCredentials, InvalidToken, UserNotFound
 from src.mail import mail, createMessage
@@ -63,7 +64,9 @@ async def verifyUserAccount(token: str, session: AsyncSession = Depends(getSessi
 
 @authRouter.post("/signup", status_code=status.HTTP_201_CREATED)
 async def createUserAccount(
-    userData: UserCreateModel, session: AsyncSession = Depends(getSession)
+    userData: UserCreateModel,
+    bgTasks: BackgroundTasks,
+    session: AsyncSession = Depends(getSession),
 ):
     email = userData.email
     userExists = await userService.userExists(email, session)
@@ -72,20 +75,18 @@ async def createUserAccount(
         raise UserAlreadyExists()
 
     newUser = await userService.createUser(userData, session)
-
     token = createUrlSafeToken({"email": email})
-
     link = f"http://{Config.DOMAIN}/api/0.1/auth/verify/{token}"
+
+    emails = [email]
+
+    subject = "Verify your email"
 
     htmlMessage = f"""
     <p>Please click this <a href="{link}"> link</a> to verify your email</p>
     """
 
-    message = createMessage(
-        recipients=[email], subject="Verify Your Email", body=htmlMessage
-    )
-
-    await mail.send_message(message)
+    send_email.delay(emails, subject, htmlMessage)
 
     return {
         "message": "Account created. Check email to verify your account",
@@ -163,15 +164,13 @@ async def passwordResetRequest(emailData: PasswordResetRequestModel):
 
     link = f"http://{Config.DOMAIN}/api/0.1/auth/password-reset-confirm/{token}"
 
+    emails = [email]
+    subject = "Reset Your Password"
     htmlMessage = f"""
     <p>Please click this <a href="{link}"> link</a> to reset your password</p>
     """
 
-    message = createMessage(
-        recipients=[email], subject="Reset Your Password", body=htmlMessage
-    )
-
-    await mail.send_message(message)
+    send_email.delay(emails, subject, htmlMessage)
 
     return JSONResponse(
         content={"message": "Check your email for instructions to reset your password"},
@@ -187,7 +186,7 @@ async def resetAccountPassword(
 ):
     newPassword = passwords.newPassword
     confirmPassword = passwords.confirmNewPassword
-    
+
     if newPassword != confirmPassword:
         raise HTTPException(
             detail="Passwords do not match", status_code=status.HTTP_400_BAD_REQUEST
