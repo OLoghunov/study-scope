@@ -10,9 +10,14 @@ from .middleware import registerMiddleware
 version = "0.1"
 
 app = FastAPI(
-    title="Library",
+    title="Study-Scope",
     description="A REST API for online library",
     version=version,
+    docs_url=f"/api/{version}/docs",
+    redoc_url=f"/api/{version}/redoc",
+    contact={
+        "email":"loghunov1@gmail.com"
+    }
 )
 
 registerAllErrors(app)
