@@ -15,6 +15,7 @@ app = FastAPI(
     version=version,
     docs_url=f"/api/{version}/docs",
     redoc_url=f"/api/{version}/redoc",
+    openapi_url=f"/api/{version}/openapi.json"
     contact={
         "email":"loghunov1@gmail.com"
     }
